@@ -47,6 +47,7 @@
   #guide h2 { margin: 0; font-size: 20px; color: #ffe9b0; letter-spacing: 1px; }
   #guide .lead { margin: 0; font-size: 14px; line-height: 1.55; text-align: center; color: #d9d2bd; max-width: 340px; }
   #guide .lead b { color: #f8d878; }
+  #guide .note { margin: 0; font-size: 12px; line-height: 1.5; text-align: center; color: #9c99bd; max-width: 340px; }
   #guide ol { list-style: none; margin: 4px 0 0; padding: 0; width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 8px; }
   #guide li { display: flex; align-items: center; gap: 12px; background: #17172e; border: 2px solid #2e2b52; border-radius: 12px; padding: 11px 13px; font-size: 14px; line-height: 1.4; }
   #guide li .n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: #f8d878; color: #1a1018; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }
@@ -64,14 +65,15 @@
   #guide .foot { font-size: 11px; color: #6f6c92; text-align: center; }
   /* 가로 화면(낮은 높이): 왼쪽 제목·버튼, 오른쪽 순서 — 넘기지 않아도 한 화면에 */
   @media (orientation: landscape) and (max-height: 520px) {
-    #guide .in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); grid-template-rows: auto auto auto auto 1fr;
+    #guide .in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); grid-template-rows: auto auto auto auto auto 1fr;
                  column-gap: 26px; row-gap: 8px; align-content: center; justify-items: center; max-width: 820px; margin: 0 auto; }
     #guide .icon { grid-column: 1; width: 48px; height: 48px; border-radius: 12px; }
     #guide h2 { grid-column: 1; font-size: 18px; }
     #guide .lead { grid-column: 1; font-size: 13px; }
+    #guide .note { grid-column: 1; font-size: 11px; }
     #guide .btns { grid-column: 1; margin-top: 4px; }
     #guide .foot { grid-column: 1; align-self: start; }
-    #guide ol { grid-column: 2; grid-row: 1 / span 5; align-self: center; margin: 0; gap: 7px; }
+    #guide ol { grid-column: 2; grid-row: 1 / span 6; align-self: center; margin: 0; gap: 7px; }
     #guide li { padding: 8px 12px; font-size: 13px; }
     #guide button { padding: 10px; }
   }
@@ -88,6 +90,7 @@
   <img class="icon" src="icon.png" alt="">
   <h2>밤종이 울리는 마을</h2>
   <p class="lead">아이폰은 <b>홈 화면에 추가</b>해서 열면<br>주소창 없이 <b>전체 화면</b>으로 할 수 있어요.</p>
+  <p class="note">💾 저장도 홈 화면 앱 쪽에 따로 남아요. Safari에서만 하면 며칠 안 들어갈 때 지워질 수 있어서, 처음부터 홈 화면에서 시작하는 걸 추천해요.</p>
   <ol>
     <li class="k"><span class="n">!</span><span class="t">먼저 <b>Safari로 열기</b><small>카톡 안에서는 홈 화면에 추가가 안 돼요. 아래 노란 버튼을 누르거나, 오른쪽 아래 ⋯ 에서 'Safari로 열기'</small></span></li>
     <li class="s"><span class="n">1</span><span class="t">아래쪽 <b>공유 버튼</b> 누르기<small>안 보이면 ⋯ 를 누른 뒤 '공유'</small></span>
@@ -131,11 +134,16 @@
     };
   })();
 
+  // 판 번호: 새로 올릴 때마다 바꿔서, 휴대폰·홈 화면 앱이 예전 게임 파일을 붙잡고 있지 않게
+  var V = '20261108a';
+  // 아이폰 무음 스위치가 켜져 있어도 게임 소리가 나게 (Safari 17 이상)
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+
   var canvas = document.querySelector('#unity-canvas');
   var config = {
-    dataUrl: "Build/g_data.wasm",
-    frameworkUrl: "Build/g_framework.wasm",
-    codeUrl: "Build/g_code.wasm",
+    dataUrl: "Build/g_data.wasm?v=" + V,
+    frameworkUrl: "Build/g_framework.wasm?v=" + V,
+    codeUrl: "Build/g_code.wasm?v=" + V,
     streamingAssetsUrl: "StreamingAssets",
     companyName: "Bamjong",
     productName: "밤종이 울리는 마을",
@@ -144,7 +152,7 @@
     devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
   };
   var script = document.createElement('script');
-  script.src = "Build/WebGL.loader.js";
+  script.src = "Build/WebGL.loader.js?v=" + V;
   script.onload = function () {
     createUnityInstance(canvas, config, function (p) {
       document.querySelector('#fill').style.width = (100 * p) + '%';
