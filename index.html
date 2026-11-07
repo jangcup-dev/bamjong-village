@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<!-- 아이폰: 확대 막기, 노치 아래까지 쓰되 안전 영역은 아래 CSS 가 비워 둠 -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<!-- 홈 화면에 추가하면 주소창 없이 전체 화면 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="밤종 마을">
+<meta name="theme-color" content="#0b0c1a">
+<link rel="apple-touch-icon" href="icon.png">
+<title>밤종이 울리는 마을</title>
+<style>
+  html, body {
+    margin: 0; height: 100%; background: #0b0c1a; overflow: hidden;
+    overscroll-behavior: none;            /* 당겨서 새로고침·고무줄 스크롤 막기 */
+    touch-action: none;                   /* 두 번 탭 확대, 핀치 확대 막기 */
+    -webkit-user-select: none; user-select: none;
+    -webkit-touch-callout: none;          /* 길게 누를 때 뜨는 메뉴·확대경 막기 (손 버튼 길게 누르기) */
+    -webkit-tap-highlight-color: transparent;
+    font-family: -apple-system, "Apple SD Gothic Neo", sans-serif; color: #f4ead2;
+  }
+  #wrap {
+    position: fixed; inset: 0;
+    /* 노치·다이내믹 아일랜드·홈 막대를 피해서 게임 화면을 둔다 */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    box-sizing: border-box;
+  }
+  #unity-canvas { width: 100%; height: 100%; display: block; background: #0b0c1a; outline: none; }
+  #loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: #0b0c1a; }
+  #loading h1 { margin: 0; font-size: 22px; letter-spacing: 1px; color: #ffe9b0; }
+  #bar { width: 200px; height: 8px; border: 2px solid #f4ead2; border-radius: 6px; overflow: hidden; }
+  #fill { height: 100%; width: 0; background: #f8d878; }
+  #tip { font-size: 12px; color: #a9a8c8; text-align: center; line-height: 1.5; padding: 0 24px; }
+  #rotate { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: #0b0c1a; z-index: 10; font-size: 17px; }
+  #rotate .phone { width: 40px; height: 66px; border: 3px solid #f4ead2; border-radius: 8px; animation: turn 1.8s ease-in-out infinite; }
+  @keyframes turn { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
+  /* 터치 기기 + 세로 화면이면 "가로로 돌려 주세요" */
+  @media (orientation: portrait) and (pointer: coarse) { #rotate { display: flex; } }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="unity-canvas" tabindex="-1"></canvas></div>
+<div id="loading">
+  <h1>밤종이 울리는 마을</h1>
+  <div id="bar"><div id="fill"></div></div>
+  <div id="tip">불러오는 중…<br>아이폰: 공유 버튼 → "홈 화면에 추가"로 열면 전체 화면으로 할 수 있어요</div>
+</div>
+<div id="rotate"><div class="phone"></div><div>휴대폰을 가로로 돌려 주세요</div></div>
+<script>
+  // 확대·스크롤 제스처 막기 (iOS Safari 는 viewport 설정만으로는 핀치를 다 막지 못함)
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (n) { document.addEventListener(n, function (e) { e.preventDefault(); }, { passive: false }); });
+  document.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  var canvas = document.querySelector('#unity-canvas');
+  var config = {
+    dataUrl: "Build/g_data.wasm",
+    frameworkUrl: "Build/g_framework.wasm",
+    codeUrl: "Build/g_code.wasm",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "Bamjong",
+    productName: "밤종이 울리는 마을",
+    productVersion: "1.0",
+    // 아이폰 화면은 3배 밀도: 픽셀 그림이라 2배면 충분하고 훨씬 가벼움
+    devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+  };
+  var script = document.createElement('script');
+  script.src = "Build/WebGL.loader.js";
+  script.onload = function () {
+    createUnityInstance(canvas, config, function (p) {
+      document.querySelector('#fill').style.width = (100 * p) + '%';
+    }).then(function () {
+      document.querySelector('#loading').style.display = 'none';
+      canvas.focus();
+    }).catch(function (m) {
+      document.querySelector('#tip').textContent = '불러오지 못했어요: ' + m;
+    });
+  };
+  document.body.appendChild(script);
+</script>
+</body>
+</html>
